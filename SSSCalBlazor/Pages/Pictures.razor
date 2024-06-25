@@ -1,0 +1,355 @@
+@page "/pictures"
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager navigationManager
+@using System.Text.Json;
+
+@using System.IO;
+@using System.Text.RegularExpressions;
+
+<h1>Weather forecast</h1>
+
+<div>
+    <center><button class="btn btn-primary" disabled="@BackButtonDeActived" @onclick="@(e=> BackLoadit(e))">@BackButtonText</button></center>
+
+    <div id='picCont'>@messages</div>
+    <center v-if="ShowDir" id="cDir"><h2>Directories</h2></center>
+    <table id="tFolder" @ref="tFolder" width="100%" cellSpacing="0" border="0">
+        <tbody>
+            <tr>
+                <td>
+                    @foreach (var fld in displayfolders)
+                    {
+                        <div style="float:left;min-width:195px;"><a href="#" @onclick:preventDefault="true" @onclick="@(e=> Loadit(e, fld.Name))">@fld.Name</a></div>
+                    }
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <center v-if="ShowPic" id="cPics"><h2>Pictures</h2></center>
+    <table id="tPics" name="tPics" width="100%" cellSpacing="0" border="0">
+        <tbody>
+            <tr>
+                <td>
+                    @foreach (var fld in displaypictures)
+                    {
+                        <div style="float:left;min-width:195px;"><a href="#" @onclick:preventDefault="true" @onclick="@(e=> FullPic(e, fld.Path))"><img id="imgPic" src="@fld.Path" /></a></div>
+                    }
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <center v-if="ShowMov" id="cMovies"><h2>Movies</h2></center>
+    <table id="tMovies" name="tMovies" width="100%" cellSpacing="0" border="0">
+        <tbody>
+            <tr>
+                <td>
+                    @foreach (var fld in movies)
+                    {
+                        <div style="float:left;min-width:195px;"><a href="#" @onclick:preventDefault="true" @onclick="@(e => ChangeMovie(e, fld.Path))">@fld.Name</a></div>
+                    }
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+
+    <video style="@ShowMov" @ref="videoplayer" id="vpID" width="640" height="360" src="@movieSrc" controls>
+        Your browser does not support the
+        <code>video</code> element.
+    </video>
+
+
+</div>
+
+@code {
+    private PictureNode pictures;
+    private bool BackButtonDeActived = false;
+    private string ShowMov = "display:none";
+
+    Stack<PictureNode> hlddir = new Stack<PictureNode>();
+    public List<PictureNode> displayfolders = new List<PictureNode>();
+    public List<PictureNode> displaypictures = new List<PictureNode>();
+    public List<PictureNode> movies = new List<PictureNode>();
+    public string BackButtonText { get; set; }
+    //string cssClass => ShowMov ? "show" : "hide";
+    //class="@cssClass"
+
+    int MaxCols = 0;
+    private ElementReference tFolder;
+    private ElementReference videoplayer;
+    string messages = "";
+    string movieSrc = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        messages = "loading...";
+    }
+
+
+    protected async Task AddFolders(Dictionary<string, PictureNode> folders, int MaxRows)
+    {
+        var celPos = 0;
+        for (var x = 0; x < MaxRows; x++)
+        {
+            for (var y = 0; y < this.MaxCols; y++)
+            {
+                celPos = x + (y * MaxRows);
+
+                if (celPos > folders.Count)
+                {
+                    //this.folders.push(this.buildDirLink(celPos,1, ''));
+                    Console.WriteLine($"************ OUT OF BOUND Celpos > folder count ({celPos})");
+                    continue;
+                }
+
+                //currentNode.folders.Count
+
+                var datacell = folders.ElementAt(celPos);
+                //if (datacell != null)
+                {
+                    if (datacell.Value.CellType == "Folder")
+                    {
+                        datacell.Value.id = (x * this.MaxCols) + y;
+                        //Console.WriteLine($"datacell id({datacell.Value.id} name({datacell.Value.Name}))");
+                        displayfolders.Add(datacell.Value); //this.buildDirLink(celPos,0, foldersOnly[celPos].Name));
+                    }
+                }
+            }
+        }
+        //Console.WriteLine($"displayfolders count({displayfolders.Count})");
+
+    }
+
+    protected async Task AddPictures(Dictionary<string, PictureNode> folders)
+    {
+        int j = 0;
+        foreach (var datacell in folders)
+        {
+            if (datacell.Value.CellType == "File" && datacell.Value.FileType == "Image")
+            {
+                datacell.Value.id = j++;
+                if (datacell.Value.Path.IndexOf("SSSWebAPI") == -1)
+                    datacell.Value.Path = $"https://www.schuebelsoftware.com/SSSWebAPI/api/Image?Height=180&Width=180&FilePath={datacell.Value.Path}";
+                displaypictures.Add(datacell.Value); //this.buildPicLink(i, key, datacell));
+            }
+        }
+        //Console.WriteLine($"displaypictures count({displaypictures.Count})");
+
+    }
+
+    protected async Task AddMovies(Dictionary<string, PictureNode> folders)
+    {
+        int j = 0;
+        foreach (var datacell in folders)
+        {
+            if (datacell.Value.CellType == "File" && datacell.Value.FileType == "Movie")
+            {
+                {
+                    datacell.Value.id = j++;
+                    movies.Add(datacell.Value); //this.buildPicLink(i, key, datacell));
+                }
+            }
+        }
+        //Console.WriteLine($"displaymovies count({movies.Count})");
+
+    }
+
+    protected async Task UpdateTable(PictureNode currentNode)
+    {
+        if (currentNode.folders == null) return;
+        if (MaxCols == 0) return;
+
+        int fldCount = currentNode.folders.Where(x => x.Value.CellType == "Folder").Count();
+        //Console.WriteLine($"currentNode.folders.Count({currentNode.folders.Count})");
+        //Console.WriteLine($"fldCount({fldCount})");
+
+
+        // foreach (var datacell in currentNode.folders)
+        // {
+        //     Console.WriteLine($"datacell.Value.Name=({datacell.Value.Name})   datacell.Value.CellType=({datacell.Value.CellType}) datacell.Value.FileType={datacell.Value.FileType}");
+        // }
+
+
+        int MaxRows = (int)Math.Round((double)fldCount / MaxCols);
+        //Console.WriteLine($"root folder count= {currentNode.folders.Count}");
+        //Console.WriteLine($"updateTable MaxRows({MaxRows})");
+        displayfolders.Clear();
+        displaypictures.Clear();
+        movies.Clear();
+
+        AddFolders(currentNode.folders, MaxRows);
+        AddPictures(currentNode.folders);
+        AddMovies(currentNode.folders);
+
+    }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            //await JSRuntime.InvokeVoidAsync("setElementText", tFolder, "Text after render");
+
+            try
+            {
+
+                int wd = await JSRuntime.InvokeAsync<int>("getFolderWidth", tFolder);
+                //Console.WriteLine($"wd={wd}");
+
+                MaxCols = (int)wd / 195;
+                // Console.WriteLine($"MaxCols={MaxCols}");
+
+                // var rets = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "SSSPics");
+
+
+                var piccnt = await localStorage.GetItemAsync<int?>("SSSPicsLen");
+                if (piccnt != null)
+                {
+                    var sbpicstr = new System.Text.StringBuilder(piccnt.Value * 65535);
+                    for (int j = 1; j <= piccnt; j++)
+                    {
+                        sbpicstr.Append(await localStorage.GetItemAsync<string>($"SSSPics{j:D2}"));
+                    }
+                    pictures = JsonSerializer.Deserialize<PictureNode>(sbpicstr.ToString());
+
+                }
+                 //pictures = await localStorage.GetItemAsync<PictureNode>("SSSPics");
+                if (pictures == null)
+                {
+                    var hldaddr =Http.BaseAddress;
+                    if (Http.BaseAddress == null)
+                        Http.BaseAddress = new Uri(navigationManager.BaseUri);
+                    Console.WriteLine("SSSPics loaded from disk");
+                    var picstr = await Http.GetStringAsync("inetpub.json");
+                    // pictures = await Http.GetFromJsonAsync<PictureNode>("inetpub.json");
+                    if (picstr is null)
+                    {     Console.WriteLine("NOOO pictures.Family");
+                        return;
+                    }
+
+                    var piclen = picstr.Length;
+                    piccnt = piclen / 65535;
+                    if (piclen > (piccnt * 65535)) piccnt++;
+
+                    await localStorage.SetItemAsync("SSSPicsLen", piccnt);
+                    var pos = 1;
+                    var moveLen = 65535;
+                    for (int i = 0; i < piclen; i += 65535)
+                    {
+                        if ((i + 65535) > piclen) //moveLen = piclen - i;
+                            await localStorage.SetItemAsync($"SSSPics{pos:D2}", picstr.Substring(i));
+                        else
+                            await localStorage.SetItemAsync($"SSSPics{pos:D2}", picstr.Substring(i, moveLen));
+                        pos++;
+                    }
+                    //await localStorage.SetItemAsync("SSSPics", JsonSerializer.Serialize(pictures));
+
+                     var sbpicstr = new System.Text.StringBuilder(piccnt.Value * 65535);
+                    for(int j=1;j<=piccnt;j++) {
+                        sbpicstr.Append(await localStorage.GetItemAsync<string>($"SSSPics{j:D2}"));
+                    }
+                    pictures = JsonSerializer.Deserialize<PictureNode>(sbpicstr.ToString());
+
+                    //                string json = JsonConvert.SerializeObject(registerModel, Formatting.Indented);
+                      //var picstr2 = await localStorage.GetItemAsync<PictureNode>("SSSPics");
+
+                }
+                messages = "";
+                hlddir.Push(pictures);
+                BackButtonText = $"{pictures.Name}";
+                await UpdateTable(pictures);
+                StateHasChanged();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
+            }
+
+        }
+    }
+
+    protected async Task BackLoadit(MouseEventArgs e)
+    {
+        //Console.WriteLine($"BackLoadit hlddir.Count({hlddir.Count})");
+
+        var currNode = hlddir.Pop();
+        //Console.WriteLine($"BackLoadit popped currNode.Name({currNode.Name})");
+
+        currNode = hlddir.Peek();
+        //Console.WriteLine($"BackLoadit peek currNode.Name({currNode.Name})");
+        if (currNode.Name == pictures.Name)
+        {
+            //now at family top node leave on stack
+            BackButtonText = $"{currNode.Name}";
+            BackButtonDeActived = true;
+        }
+        else
+        {
+            var parentNode = hlddir.ElementAt(1);
+            BackButtonText = $"Back to: {parentNode.Name}";
+            BackButtonDeActived = false;
+
+        }
+
+        //var parentNode = hlddir.Peek();
+        await UpdateTable(currNode);
+        StateHasChanged();
+
+
+    }
+
+
+
+    protected async Task Loadit(MouseEventArgs e, string Path)
+    {
+        //Console.WriteLine($"Loadit path({Path})");
+        //Console.WriteLine($"Loadit hlddir.Count({hlddir.Count})");
+
+        JSRuntime.InvokeVoidAsync("stopmovie", videoplayer, null);
+        //ShowMov = "display:none";
+
+
+        var parentNode = hlddir.Peek();
+        //Console.WriteLine($"Loadit parentNode.Name({parentNode.Name})");
+        if (parentNode.folders.ContainsKey(Path))
+        {
+            var currNode = parentNode.folders[Path];
+            await UpdateTable(currNode);
+            BackButtonText = $"Back to: {parentNode.Name}";
+            BackButtonDeActived = false;
+            //Console.WriteLine($"Loadit pushing currNode.Name({currNode.Name})");
+            hlddir.Push(currNode);
+            StateHasChanged();
+        }
+
+    }
+
+    protected async Task FullPic(MouseEventArgs e, string Path)
+    {
+        //Console.WriteLine($"FullPic path({Path})");
+
+        JSRuntime.InvokeVoidAsync("stopmovie", videoplayer, null);
+        await JSRuntime.InvokeVoidAsync("openpic", null, Path);
+
+    }
+
+    protected async Task ChangeMovie(MouseEventArgs e, string Path)
+    {
+        //Console.WriteLine($"ChangeMovie path({Path})");
+
+        var hldpath = Regex.Replace(Path, ".:/inetpub/", "https://www.schuebelsoftware.com/");
+        Console.WriteLine($"ChangeMovie updated hldpath({hldpath})");
+        await JSRuntime.InvokeVoidAsync("playmovie", videoplayer, hldpath);
+
+
+
+
+    }
+
+
+                }

@@ -1,0 +1,87 @@
+@page "/event"
+
+<h1>Manage Events</h1>
+
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th class="smallSCR">UserName</th>
+            <th>Topic</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var dat in eventData)
+        {
+            <tr @onclick="@(e => ShowPop(e, dat))">
+                <td>@(dat.date==null?"n/a":dat.date.Value.ToShortDateString())</td>
+                <td class="smallSCR">@dat.userName</td>
+                <td>@dat.topic</td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="3">
+                <Pagination TotalRecords="@TotalRows" PageSize="@pageSize" OnClick="PagingHandler"></Pagination>
+            </td>
+        </tr>
+    </tfoot>
+
+</table>
+
+
+<BlazorModal Title="Update Event" IsOpened="isOpened">
+    <ModalBody>
+        <div class="row">
+            <div class="col-xs-6 col-sm-4">
+                <label class="label2">Name</label>
+            </div>
+            <div class="col-xs-6 col-lg-8">
+                <input class="form-control" type="text" name="Name" id="Name" @bind="selectedEvent.userName" />
+            </div>
+            <input type="hidden" id="id" name="id" />
+            <input type="hidden" id="Address_ID" name="Address_ID" />
+        </div>
+
+        <div class="row">
+            <div class="col-xs-6 col-sm-4">
+                <label class="label2">TopicTitle</label>
+            </div>
+            <div class="col-xs-6 col-lg-8">
+                <input class="form-control" type="text"  @bind="selectedEvent.topicTitle" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-6 col-sm-4">
+                <label class="label2">Topic</label>
+            </div>
+            <div class="col-xs-6 col-lg-8">
+                <input class="form-control" type="text"   @bind="selectedEvent.topic" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-6 col-sm-4">
+                <label class="label2">Date</label>
+            </div>
+            <div class="col-xs-6 col-lg-8">
+                <input class="form-control" type="date" @bind="selectedEvent.date" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-6 col-sm-4">
+                <label class="label2">Description</label>
+            </div>
+            <div class="col-xs-6 col-lg-8">
+                <input class="form-control" type="text" @bind="selectedEvent.description" />
+            </div>
+        </div>
+
+    </ModalBody>
+    <ModalFooter>
+        <button class="btn btn-primary" @onclick="CloseModal">Close</button>
+        <button class="btn btn-primary" @onclick="SaveModal">Save</button>
+    </ModalFooter>
+</BlazorModal>

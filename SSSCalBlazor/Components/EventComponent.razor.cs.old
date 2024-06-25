@@ -1,0 +1,58 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.Components.Web;
+
+
+namespace SSSCalBlazor.Pages
+{
+
+    public partial class EmailModel : ComponentBase
+    {
+
+
+        public string selectedCountryID { get; set; }
+        public EventModel[] eventData;
+        public PeopleModel[] UnSelectedEmailList;
+        public EventModel selectedEvent { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            //        groups = await Http.GetFromJsonAsync<Group[]>($"http://www.schuebelsoftware.com/SSSCalCoreApi/api/group/{selectedID}");
+            eventData = await Http.GetFromJsonAsync<EventModel[]>($"http://www.schuebelsoftware.com/SSSCalCoreApi/api/event");
+
+
+            int j = 0;
+            
+        }
+
+
+        public class EventModel
+        {
+            public int id { get; set; }
+            public string description { get; set; }
+            public int eventId { get; set; }
+            public int personId { get; set; }
+            PeopleModel[] people { get; set; }
+        }
+
+      public class PeopleModel
+    {
+        public int id { get; set; }
+        public string name { get; set; }
+        public DateTime dateOfBirth { get; set; }
+        public string homePhone { get; set; }
+        public string pager { get; set; }
+        public string work { get; set; }
+        public string eMail { get; set; }
+        public int AddressId { get; set; }
+        public bool birthdayAlert { get; set; }
+        //createdate":"1999-11-10T00:00:00","address":null,"events
+    }
+
+
+
+    }
+}

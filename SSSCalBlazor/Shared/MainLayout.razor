@@ -1,0 +1,83 @@
+﻿@inherits LayoutComponentBase
+@inject HttpClient Http
+@inject ILocalStorageService LocalStorage
+@inject IJSRuntime jsRuntime;
+@inject AuthenticationStateProvider AuthStateProvider
+
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Components.Authorization;
+
+<div class="page">
+        <div class="sidebar">
+            <NavMenu />
+        </div>
+
+        <div class="main">
+            <div class="top-row px-4">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="oi oi-home" aria-hidden="true"></span> Home
+                </NavLink>
+                <NavLink class="nav-link" href="pictures">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Pictures
+                </NavLink>
+            <NavLink class="nav-link" href="person">
+                <span class="oi oi-plus" aria-hidden="true"></span> Person
+            </NavLink>
+            <NavLink class="nav-link" href="personhistory">
+                <span class="oi oi-plus" aria-hidden="true"></span> Person History
+            </NavLink>
+            
+                <NavLink class="nav-link" href="event">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Event
+                </NavLink>
+                <NavLink class="nav-link" href="email">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Email
+                </NavLink>
+            <NavLink class="nav-link" href="fetchdata">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
+            </NavLink>
+            <!--NavLink class="nav-link" href="http://localhost:3600/api/login?ssoReturn=https://localhost:7064/login" -->
+            <NavLink class="nav-link" href="https://www.schuebelsoftware.com/sso/api/login?ssoReturn=https://www.schuebelsoftware.com/login">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Login
+            </NavLink>
+            <NavLink class="nav-link" href="#" @onclick="@(e => LogOut())">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Logout
+            </NavLink>
+
+            <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
+            </div>
+
+            <div class="content px-4">
+                @Body
+            </div>
+        </div>
+    </div>
+@code {
+    protected async Task LogOut()
+    {
+        string token = await LocalStorage.GetItemAsStringAsync("accesstoken");
+
+        Http.DefaultRequestHeaders.Clear();
+        Http.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
+        var result = await Http.PostAsync("https://www.schuebelsoftware.com/sso/api/logout", null);
+        //var result = await Http.PostAsync("http://localhost:3600/api/logout", null);
+
+        var tokestr = await result.Content.ReadAsStringAsync();
+
+        //tokestr = '{"message":"Post logged out..."}'
+        if (tokestr.Contains("logged out"))
+        {
+            await LocalStorage.SetItemAsStringAsync("accesstoken", "");
+            await LocalStorage.SetItemAsStringAsync("idtoken", "");
+            await LocalStorage.SetItemAsStringAsync("reftoken", "");
+
+            await AuthStateProvider.GetAuthenticationStateAsync();
+
+            await jsRuntime.InvokeVoidAsync("alert", "User Logged Out!");
+        }
+        else
+            await jsRuntime.InvokeVoidAsync("alert", "Failed to Log Out!");
+
+    }
+}

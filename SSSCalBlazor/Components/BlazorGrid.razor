@@ -1,0 +1,36 @@
+﻿<table class="table table-responsive table-striped table-hover table-condensed">
+    <thead>
+        @ModalHeader
+    </thead>
+    <tbody>
+        @ModalBody
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="4">
+                <Pagination CurrentPage="@CurrentPage" TotalRecords="@TotalRows" PageSize="@pageSize" OnClick="OnClick"></Pagination>
+            </td>
+        </tr>
+    </tfoot>
+</table>
+
+@code { [Parameter]
+    public string Title { get; set; }
+
+    [Parameter] public int CurrentPage { get; set; }
+    [Parameter] public int TotalRows { get; set; }
+    [Parameter] public int pageSize { get; set; }
+    [Parameter] public EventCallback<int> OnClick { get; set; }
+
+
+    [Parameter]
+    public RenderFragment ModalHeader { get; set; }
+
+    [Parameter]
+    public RenderFragment ModalBody { get; set; }
+
+
+    [Parameter]
+    public bool ShowPop { get; set; }
+
+}

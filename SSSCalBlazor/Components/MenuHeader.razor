@@ -1,0 +1,72 @@
+﻿<div class="container-fluid">
+    <div class="row" @onclick="@(e => OnSort(e))">
+        @ChildContent
+        &nbsp;<i class="@cssClass()" aria-hidden="true"></i>
+    </div>
+    <div class="row">
+        <input type="text" class="form-control" placeholder="<<Search>>"  @oninput="@FilterChangedAsync" />
+    </div>
+</div>
+
+
+@code {
+    [Parameter] public EventCallback<Tuple<string,string,string>> Filter { get; set; }
+    [Parameter] public EventCallback<string> Sort { get; set; }
+    [Parameter] public string ColumnName { get; set; }
+    [Parameter] public string ColumnType { get; set; }
+    [Parameter] public string SelectedColumn { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public string SortDir { get; set; }
+    bool isTrying = false;
+
+    private string _searchString;
+    private void FilterChangedAsync(ChangeEventArgs args)
+    {
+        var wasEmpty = string.IsNullOrEmpty(_searchString);
+        Console.WriteLine("onChange selectedEventID=" + args.Value);
+
+        _searchString = args.Value.ToString().Trim();
+        //if had data and cleared, continue
+        if (string.IsNullOrEmpty(_searchString) && wasEmpty) return;
+        if (isTrying) return;
+
+        if (ColumnType == "date" && _searchString.Length == 0 && !wasEmpty)
+            ;
+        else
+        {
+
+            if (ColumnType == "date" && _searchString.Length < 8) return;
+        }
+
+        isTrying = true;
+        if (ColumnType == null) ColumnType = "string";
+        Task.Delay(750).ContinueWith(t => firemethod());
+    }
+
+    private void firemethod()
+    {
+        isTrying = false;
+        Filter.InvokeAsync(Tuple.Create(ColumnName, ColumnType, _searchString));
+    }
+
+    string cssClass() {
+        //Console.WriteLine($"colname({ColumnName}) == selectectcol({SelectedColumn})");
+        if (SelectedColumn == ColumnName) {
+            var style = "fa ";
+            if (SortDir=="asc") style += "fa-sort-up";
+            else style+= "fa-sort-down";
+            //Console.WriteLine($"!!!!! hit colname({ColumnName}) SortDir({SortDir})  style=({style})");
+            return style;
+        }
+        return "fa fa-sort";
+    }
+
+
+    private void OnSort(MouseEventArgs e)
+    {
+        //Console.WriteLine($"!!!!! hit SORT({ColumnName})");
+
+        Sort.InvokeAsync(ColumnName);
+       
+    }
+}

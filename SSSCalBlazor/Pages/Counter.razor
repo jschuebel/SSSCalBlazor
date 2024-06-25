@@ -1,0 +1,112 @@
+﻿@page "/counter"
+@*attribute [Authorize]*@
+
+@*attribute [Authorize(Roles = "Family")]*@
+
+@using System.Security.Claims
+@inject ILocalStorageService LocalStorage
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthStateProvider
+
+<h1>Counter</h1>
+
+<p>Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+
+
+<AuthorizeView>
+    <Authorized>
+        <span>You're authorized as @context.User.Identity.Name</span><br/>
+        Role: @person.role <br />
+        Issued: @person.iss <br />
+
+        <button @onclick="HandleLogout">Logout</button>
+    </Authorized>
+    <NotAuthorized>
+        <br/><br/>
+        <span>You're not authorized, buddy.</span>
+        <!-- a href="http://localhost:3600/api/login?ssoReturn=https://localhost:5001/login?pg=Counter">Login</a><br / -->
+        <a href="https://www.schuebelsoftware.com/sso/api/login?ssoReturn=https://www.schuebelsoftware.com/login">Login</a><br />
+        
+    </NotAuthorized>
+</AuthorizeView>
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    /*
+    *
+    * <AuthorizeView Roles="Family">
+
+     */
+
+
+
+    private int currentCount = 0;
+
+
+    public class myp
+    {
+        public string Usern { get; set; }
+        public string role { get; set; }
+        public string iss { get; set; }
+        public string scope { get; set; }
+        public string creatd { get; set; }
+    }
+
+    public myp person { get; set; } = new myp();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (authenticationState is not null)
+        {
+            var authState = await authenticationState;
+            var User = authState.User;
+
+            var Name = authState.User.FindFirst(c => c.Type == "name")?.Value;
+            var firstName = authState.User.FindFirst(c => c.Type == ClaimTypes.GivenName)?.Value;
+            var lastName = authState.User.FindFirst(c => c.Type == ClaimTypes.Surname)?.Value;
+            person.role = authState.User.FindFirst(c => c.Type == ClaimTypes.Role)?.Value;
+            person.Usern = ((System.Security.Claims.ClaimsIdentity)authState.User.Identity).Name;
+            var isauth = ((System.Security.Claims.ClaimsIdentity)authState.User.Identity).IsAuthenticated;
+            person.iss = authState.User.FindFirst(c => c.Type == "iss")?.Value;
+            person.scope = authState.User.FindFirst(c => c.Type == "scope")?.Value;
+            person.creatd = authState.User.FindFirst(c => c.Type == "createdOn")?.Value;
+            var isuser = User.IsInRole("user");
+            var isadmin = User.IsInRole("admin");
+
+        }
+
+    }
+
+    async Task HandleLogout()
+    {
+        try
+        {
+            string token = await LocalStorage.GetItemAsStringAsync("accesstoken");
+            Http.DefaultRequestHeaders.Clear();
+            Http.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
+            var result = await Http.PostAsync("http://localhost:3600/api/logout", null);
+            var tokestr = await result.Content.ReadAsStringAsync();
+
+            await LocalStorage.SetItemAsStringAsync("accesstoken", "");
+            await LocalStorage.SetItemAsStringAsync("reftoken", "");
+
+            await AuthStateProvider.GetAuthenticationStateAsync();
+        }
+        catch (Exception ex)
+        {
+            var x = ex.Message;
+        }
+
+    }
+
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}

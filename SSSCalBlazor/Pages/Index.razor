@@ -1,0 +1,222 @@
+﻿@page "/"
+@inject HttpClient client
+
+@using System.IO;
+@using System.Text.Json;
+
+
+<h4>Welcome to Schuebel Software Solutions LLC. Calendar</h4>
+
+<div class="month">
+    <ul>
+        <li class="prev" @onclick="PrevMonth">&#10094;</li>
+        <li class="next" @onclick="NextMonth">&#10095;</li>
+        <li>@currDate.ToString("MMMM")<br><span style="font-size:18px">@currDate.Year</span></li>
+    </ul>
+</div>
+
+<ul class="weekdays">
+    <li>Sun</li>
+    <li>Mon</li>
+    <li>Tue</li>
+    <li>Wed</li>
+    <li>Thu</li>
+    <li>Fri</li>
+    <li>Sat</li>
+</ul>
+
+<div class="days">
+    @foreach (var dy in calDays)
+    {
+        <div class='daycont'>
+            <div class='daypg'>@dy.pageNo</div>
+            @foreach (var dyl in dy.events)
+            {
+                <div class='daylbl' @onclick="@(e => ShowPop(e, dyl.description))">@dyl.label</div>
+            }
+        </div>
+    }
+</div>
+
+
+
+
+<BlazorModal Title="Calendar Event" IsOpened="isOpened">
+    <ModalBody>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-xs-6 col-sm-2">
+                    <label class="label2">Description</label>
+                </div>
+                <div class="col-xs-6 col-lg-10">
+                    <input class="form-control" type="text" name="Name" id="Name" @bind="popValue" />
+                </div>
+            </div>
+        </div>
+    </ModalBody>
+    <ModalFooter>
+    </ModalFooter>
+</BlazorModal>
+
+
+@code {
+    DateTime currDate = DateTime.Now;
+    int firstDay = 0;
+    int lastDay = 0;
+    bool isOpened = false;
+
+    string popValue = "test";
+    public List<DayNode> calDays = new List<DayNode>();
+    public List<EventModel> eventData = new List<EventModel>();
+    public int currentPage = 1, TotalRows = 0, pageSize = 9999;
+    protected string sortKey = "userName", sortDirection = "asc";
+
+
+    protected async Task UpdateCalendar()
+    {
+        isOpened = false;
+
+        currDate = new DateTime(currDate.Year, currDate.Month, 1);
+        firstDay = (int)currDate.DayOfWeek;
+        lastDay = DateTime.DaysInMonth(currDate.Year, currDate.Month);
+
+        //************* find startDate
+        var preMonth = currDate.AddMonths(-1);
+        Console.WriteLine($"preMonth = {preMonth} ");
+        var preLastDay = DateTime.DaysInMonth(preMonth.Year, preMonth.Month);
+        Console.WriteLine($"preLastDay = {preLastDay} ");
+
+        DateTime startDate;
+        if (firstDay == 0)
+        {
+            startDate = DateTime.Parse($"{currDate.Month}-01-{currDate.Year}");
+        }
+        else
+        {
+            var preMonthDays = preLastDay - (firstDay - 1);
+            Console.WriteLine($"preMonthDays = {preMonthDays} ");
+            startDate = DateTime.Parse($"{preMonth.Month}-{preMonthDays}-{preMonth.Year}");
+        }
+
+        Console.WriteLine($"startDate = {startDate.ToShortDateString()} ");
+
+        //************* find endDate
+        var nxtMonth = currDate.AddMonths(1);
+        Console.WriteLine($"nxtMonth = {nxtMonth} ");
+
+
+        var nxtMonthDays = (lastDay + firstDay);
+        Console.WriteLine($"nxtMonthDays = {nxtMonthDays}  lastDay={lastDay} firstDay={firstDay}");
+
+        var numWeeks = nxtMonthDays / 7;
+        Console.WriteLine($"numWeeks1 = {numWeeks}");
+        if ((nxtMonthDays % 7.0) > 0.0) numWeeks++;
+        Console.WriteLine($"numWeeks2 = {numWeeks}");
+
+        nxtMonthDays = ((numWeeks * 7) - nxtMonthDays);
+        Console.WriteLine($"nxtMonthDays = {nxtMonthDays} ");
+        DateTime endDate;
+        if (nxtMonthDays == 0)
+            endDate = DateTime.Parse($"{currDate.Month}-{lastDay}-{currDate.Year}");
+        else
+            endDate = DateTime.Parse($"{nxtMonth.Month}-{nxtMonthDays}-{nxtMonth.Year}");
+        Console.WriteLine($"endDate = {endDate.ToShortDateString()} ");
+
+
+        //        var filterParams = $"page={currentPage}&pageSize={pageSize}&sort[0][field]={sortKey}&sort[0][dir]={sortDirection}&filter[logic]=and&filter[filters][0][field]=Date&filter[filters][0][operator]=gte&filter[filters][0][value]={startDate.ToShortDateString()}&filter[logic]=and&filter[filters][1][field]=Date&filter[filters][1][operator]=lte&filter[filters][1][value]={endDate.ToShortDateString()}";
+        //        var httpResponse = await client.GetAsync($"http://www.schuebelsoftware.com/SSSCalCoreApi/api/event?{filterParams}", HttpCompletionOption.ResponseHeadersRead);
+        //var httpResponse = await client.GetAsync($"http://api.schuebelsoftware.com/api/event/calendarsearch?startDate={startDate.ToShortDateString()}&endDate={endDate.ToShortDateString()}", HttpCompletionOption.ResponseHeadersRead);
+        //AZURE requires SSL
+        client.DefaultRequestHeaders.Clear();
+        var httpResponse = await client.GetAsync($"https://www.schuebelsoftware.com/SSSCalWebAPI/api/event/calendarsearch?startDate={startDate.ToShortDateString()}&endDate={endDate.ToShortDateString()}", HttpCompletionOption.ResponseHeadersRead);
+
+        
+        httpResponse.EnsureSuccessStatusCode(); // throws if not 200-299
+
+        if (httpResponse.Content is object && httpResponse.Content.Headers.ContentType.MediaType == "application/json")
+        {
+            if (httpResponse.Headers.Contains("Paging-TotalRecords"))
+            {
+                var hdrRecordCount = httpResponse.Headers.GetValues("Paging-TotalRecords").FirstOrDefault();
+                TotalRows = int.Parse(hdrRecordCount);
+            }
+
+            var contentStream = await httpResponse.Content.ReadAsStreamAsync();
+            var streamReader = new StreamReader(contentStream);
+
+            //{"id":7,"userId":7,"userName":"Bob Milito","topicId":1,"date":"2020-06-02T00:00:00","repeatYearly":false,"repeatMonthly":null,"description":null,"createdate":"1999-11-09T00:00:00","topic":"Birthday","createUser":null,"topicf":{"id":1,"topicTitle":"Birthday","createdate":"1999-11-10T00:00:00"}}
+            eventData = JsonSerializer.Deserialize<List<EventModel>>(streamReader.ReadToEnd());
+            GenDays(startDate, endDate);
+        }
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateCalendar();
+    }
+
+    private void GenDays(DateTime startDate, DateTime endDate)
+    {
+        calDays.Clear();
+
+        for(var dt = startDate; dt <= endDate;dt=dt.AddDays(1))
+        {
+
+            var dayptr = new DayNode() { pageNo = dt.Day.ToString() };
+            calDays.Add(dayptr);
+
+            // activeli = dayCounter == currDate.Day+1 && hadReset==false ? "class='daylbl active'" : "class='daylbl'";
+            var evtlst = eventData.Where(x =>
+                (x.topicId==1 && x.date.Value.Month == dt.Month && x.date.Value.Day == dt.Day) ||
+                (x.topicId == 0 && x.date.Value.Month == dt.Month && x.date.Value.Day == dt.Day && x.date.Value.Year == dt.Year)
+                ).ToList();
+            if (evtlst != null && evtlst.Count > 0)
+            {
+                foreach (var ev in evtlst)
+                    dayptr.events.Add(new DayLabel() { label = ev.topic, description = ev.description });
+
+            }
+        }
+    }
+
+    protected void ShowPop(MouseEventArgs e, string msg)
+    {
+        popValue = msg;
+
+        isOpened = true;
+
+    }
+
+    void CloseModal()
+    {
+        isOpened = false;
+    }
+
+    private async Task NextMonth()
+    {
+        currDate = currDate.AddMonths(1);
+        await UpdateCalendar();
+    }
+
+    private async Task PrevMonth()
+    {
+        currDate = currDate.AddMonths(-1);
+        await UpdateCalendar();
+    }
+
+    public class DayLabel
+    {
+        public string label { get; set; }
+        public string description { get; set; }
+    }
+    public class DayNode
+    {
+        public DayNode()
+        {
+            events = new List<DayLabel>();
+        }
+        public string pageNo { get; set; }
+        public List<DayLabel> events { get; set; }
+    }
+}

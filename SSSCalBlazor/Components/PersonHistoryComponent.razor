@@ -1,0 +1,146 @@
+@page "/personhistory"
+@inject HttpClient Http
+@inject IJSRuntime jsRuntime;
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
+
+
+@using SSSCalBlazor.Models
+
+<center id="cDir"><h2>PersonHistory</h2></center>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-8">
+            <div class="text-xl font-bold my-4">Manage People</div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-8">
+            <div style="font-size:22px;  @errorMsgColor">@((MarkupString)errorMsg)</div>
+        </div>
+        <div class="col">
+            &nbsp;
+        </div>
+    </div>
+</div>
+
+@if (PeopleList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+
+    
+    <BlazorGrid TotalRows="@TotalRows" pageSize="@pageSize" OnClick="PagingHandler">
+        <ModalHeader>
+            <tr>
+                <th class="smallSCR medSCR">
+                    <MenuHeader ColumnName="Id" ColumnType="int" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">ID</MenuHeader>
+                </th>
+                <th>
+                    <MenuHeader ColumnName="Name" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">Name</MenuHeader>
+                </th>
+                <th class="smallSCR">
+                    <MenuHeader ColumnName="UpdatedOn" ColumnType="date" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">Updated On</MenuHeader>
+                </th>
+                <th>
+                    <MenuHeader ColumnName="PreviousValue" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">Previous Value</MenuHeader>
+                </th>
+                <th>
+                    <MenuHeader ColumnName="NewValue" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">New Value</MenuHeader>
+                </th>
+            </tr>
+        </ModalHeader>
+        <ModalBody>
+            @foreach (var g in PeopleList)
+            {
+                <tr>
+                    <td class="smallSCR medSCR">@g.Id</td>
+                    <td>@g.Name</td>
+                    <td class="smallSCR">@(g.UpdatedOn.Year == 1 ? "n/a" : g.UpdatedOn.ToShortDateString())</td>
+                    <td>@g.PreviousValue</td>
+                    <td>@g.NewValue</td>
+                </tr>
+            }
+        </ModalBody>
+    </BlazorGrid>
+}
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    private List<PersonHistoryModel> PeopleList = new List<PersonHistoryModel>();
+    public string errorMsg { get; set; }
+    public string errorMsgColor { get; set; } = "color:red;";
+
+    public int currentPage = 1, TotalRows = 0, pageSize = 10;
+    protected string sortKey = "name", activeKey = "name", sortDirection = "asc";
+    private bool isLoggedIn = false;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        //PeopleList = await Http.GetFromJsonAsync<List<PeopleModel>>($"http://api.schuebelsoftware.com/api/person?{filterParams}");
+        PeopleList = await Http.GetFromJsonAsync<List<PersonHistoryModel>>($"https://www.schuebelsoftware.com/SSSCalWebAPI/api/person/history");
+        //PeopleList = await Http.GetFromJsonAsync<List<PersonHistoryModel>>("https://localhost:5011/api/person/history");
+
+        if (authenticationState is not null)
+        {
+            var authState = await authenticationState;
+            var User = authState.User;
+            isLoggedIn = ((System.Security.Claims.ClaimsIdentity)authState.User.Identity).IsAuthenticated;
+        }
+    }
+
+    async Task PagingHandler(int page)
+    {
+        // currentPage = page;
+        // await Search();
+        // //            ((IJSInProcessRuntime)jsRuntime).InvokeVoid("alert", newMessage);
+    }
+
+    async Task Sort(string fldName)
+    {
+
+        // if (sortKey == fldName)
+        // {
+        //     if (sortDirection == "asc")
+        //         sortDirection = "desc";
+        //     else sortDirection = "asc";
+        // }
+        // else
+        // {
+        //     sortKey = fldName;
+        //     sortDirection = "asc";
+        // }
+        // Console.WriteLine($"fldname({fldName}) sortdir({sortDirection})");
+        // await Search();
+    }
+
+    async Task Filter(Tuple<string, string, string> searchv)
+    {
+        //ColumnName, ColumnType, _searchString
+        // Console.WriteLine($" column({searchv.Item1})  columnType({searchv.Item2}) searchString({searchv.Item3})");
+        // //https://www.schuebelsoftware.com/SSSCalWebAPI/api/person?page=1&pageSize=10&sort[0][field]=name&sort[0][dir]=asc&filter[logic]=and&filter[filters][0][field]=homePhone&filter[filters][0][operator]=contains&filter[filters][0][value]=678
+        // string srch = null;
+        // if (!string.IsNullOrEmpty(searchv.Item3))
+        // {
+        //     if (searchv.Item2 == "string")
+        //         srch = $"&filter[logic]=and&filter[filters][0][field]={searchv.Item1}&filter[filters][0][operator]=contains&filter[filters][0][value]={searchv.Item3}";
+        //     if (searchv.Item2 == "date")
+        //     {
+        //         srch = $"&filter[logic]=and&filter[filters][0][field]={searchv.Item1}&filter[filters][0][operator]=gte&filter[filters][0][value]={searchv.Item3}";
+        //         // &filter[filters][1][field]=Date&filter[filters][1][operator]=lte&filter[filters][1][value]=Mon+Apr+30+2018+00%3A00%3A00+GMT-0500+(Central+Daylight+Time)&_=1562110553341";
+        //     }
+        //     if (searchv.Item2 == "int")
+        //         srch = $"&filter[logic]=and&filter[filters][0][field]={searchv.Item1}&filter[filters][0][operator]=eq&filter[filters][0][value]={searchv.Item3}";
+        // }
+        // await Search(srch);
+    }
+
+
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+ 		<script language="javascript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<title>Popup Pic</title>
+    	<script language="JavaScript">
+            var hldpath;
+			$(window).resize(function () {
+				if (this.resizeTO) clearTimeout(this.resizeTO);
+				this.resizeTO = setTimeout(function () {
+					$(this).trigger('resizeEnd');
+			    }, 500);
+			});
+
+            $(window).bind('resizeEnd', function () {
+                $("#MainIMG").hide();
+                $("#lblholding").show();
+                hldpath = window.opener.pth2;
+                hldpath = hldpath.replace("?Height=180", "?Height=" + $(window).height());
+                hldpath = hldpath.replace("&Width=180", "&Width=" + $(window).width());
+                $("#MainIMG").attr("src", hldpath)
+                $("#MainIMG").one("load", function () {
+                    $("#lblholding").hide();
+                    $("#MainIMG").show();
+                }).attr("src", hldpath);
+                //console.log("scr=" + $("#MainIMG").attr("src") + "<--");
+            });
+
+            $(document).ready(function () {
+                $("#MainIMG").hide();
+                $(window).trigger('resizeEnd');
+            });
+
+			function LoadTest() {
+			}
+			
+		</script>
+	</head>
+	<body>
+		<form action="">
+			<img id="MainIMG" src="test" alt="loading..." />
+            <center><h1 id="lblholding">Image Loading...</h1></center>
+		</form>
+	</body>
+</html>

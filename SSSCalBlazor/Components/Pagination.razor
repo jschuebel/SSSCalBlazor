@@ -1,0 +1,40 @@
+﻿<nav>
+    <ul class="pagination justify-content-center">
+        <li class='page-item'>
+            <a class="page-link" @onclick="@(e => SetPage(e, 1))">First</a>
+        </li>
+        <li class='page-item'>
+            <a class="page-link" @onclick="@(e => SetPage(e, CurrentPage - 1))">Previous</a>
+        </li>
+
+        @for (int i = 1; i <= NumberOfPages; i++)
+        {
+            var currP = i;
+            <li class='smallSCR  @((i==CurrentPage) ? "page-item active":"page-item")'>
+                <a class="page-link" @onclick="@(e => SetPage(e, currP))">@i</a>
+            </li>
+        }
+        <li class='page-item'>
+            <a class="page-link" @onclick="@(e => SetPage(e, CurrentPage + 1))">Next</a>
+        </li>
+        <li class='page-item'>
+            <a class="page-link" @onclick="@(e => SetPage(e, NumberOfPages))">Last</a>
+        </li>
+    </ul>
+</nav>
+
+
+@code {
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public EventCallback<int> OnClick { get; set; }
+    [Parameter] public int PageSize { get; set; }
+    [Parameter] public int TotalRecords { get; set; }
+
+    public int NumberOfPages { get { return (int)Math.Round((float)TotalRecords / (float)PageSize);  } }
+
+    private void SetPage(MouseEventArgs e, int pageNo)
+    {
+        CurrentPage = pageNo;
+        OnClick.InvokeAsync(pageNo);
+    }
+}

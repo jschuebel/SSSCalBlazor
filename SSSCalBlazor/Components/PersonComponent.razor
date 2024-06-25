@@ -1,0 +1,248 @@
+@page "/person"
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-8">
+            <div class="text-xl font-bold my-4">Manage People</div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-8">
+            <div style="font-size:22px;  @errorMsgColor">@((MarkupString)errorMsg)</div>
+        </div>
+        <div class="col">
+            &nbsp;
+        </div>
+    </div>
+</div>
+
+@if (peopleData == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+
+    
+    <BlazorGrid CurrentPage="@currentPage" TotalRows="@TotalRows" pageSize="@pageSize" OnClick="PagingHandler">
+        <ModalHeader>
+            <tr>
+                <th class="smallSCR medSCR">
+                    <MenuHeader ColumnName="Id" ColumnType="int" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">ID</MenuHeader>
+                </th>
+                <th>
+                    <MenuHeader ColumnName="Name" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">Name</MenuHeader>
+                </th>
+                <th class="smallSCR">
+                    <MenuHeader ColumnName="DateOfBirth" ColumnType="date" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">DOB</MenuHeader>
+                </th>
+                <th>
+                    <MenuHeader ColumnName="HomePhone" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">Home Phone</MenuHeader>
+                </th>
+            </tr>
+        </ModalHeader>
+        <ModalBody>
+            @foreach (var g in peopleData)
+            {
+                <tr @onclick="@(e => ShowPop(e, g))">
+                    <td class="smallSCR medSCR">@g.id</td>
+                    <td>@g.name</td>
+                    <td class="smallSCR">@(g.dateOfBirth.Year==1?"n/a":g.dateOfBirth.ToShortDateString())</td>
+                    <td>@g.homePhone</td>
+                </tr>
+            }
+        </ModalBody>
+    </BlazorGrid>
+
+    <BlazorModal Title="Update Person" IsOpened="isOpened">
+        <ModalBody>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2">Name</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="Name..." type="text" name="Name" id="Name" @bind="selectedCopyPerson.name" />
+                    </div>
+                    <input type="hidden" id="id" name="id" />
+                    <input type="hidden" id="Address_ID" name="Address_ID" />
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2">Home_Phone</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" type="text" name="Home_Phone" id="Home_Phone" @bind="selectedCopyPerson.homePhone" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2">Email Adress</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="Email Address..." type="text" name="E_Mail" @bind="selectedCopyPerson.eMail" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2">Date of Birth</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" type="date" @bind="selectedCopyPerson.dateOfBirth" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2" for="Work">Work</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="Work Phone..." type="text" name="Work" id="Work" @bind="selectedCopyPerson.work" @bind:event="oninput" @onkeyup="OnWorkChange" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2" for="Pager">Pager</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="Pager..." type="text" name="Pager" id="Pager" @bind="selectedCopyPerson.pager" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2" for="Fax">Fax</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="Fax..." type="text" name="Fax" id="Fax" @bind="selectedCopyPerson.fax" />
+                    </div>
+                </div>
+                <div class="row">
+                    <hr />
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <select @onchange="onChange" style="font-family: monospace, monospace;">
+                            @foreach (var cnt in addressData)
+                            {
+                                var issel = false;
+                                if (cnt.id == selectedCopyAddress.id) issel = true;
+                                if (string.IsNullOrEmpty(cnt.address1)) {
+                                <option value="@cnt.id" selected=@issel>@("<<Select Address>>")</option>
+                                } else {
+                                <option value="@cnt.id" selected=@issel>@((MarkupString)cnt.address1)</option>
+                                }
+                            }
+                        </select>&nbsp;
+                        @if (isadmin)
+                        {
+                            <i class="fa fa-plus" aria-hidden="true" @onclick="ShowPopAddress"></i>
+                        }
+                     </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2" for="Pager">Address</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="Address..." @bind="@selectedCopyAddress.address1" @bind:event="oninput" @onkeyup="OnAddressChange" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2" for="Pager">City</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="City..." type="text" name="City" id="City" @bind="selectedCopyAddress.city" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2" for="Pager">State</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="State..." type="text" name="State" id="State" @bind="selectedCopyAddress.state" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2" for="Pager">Zip</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="Zip..." type="text" name="Zip" id="Zip" @bind="selectedCopyAddress.zip" />
+                    </div>
+                </div>
+
+
+
+
+            </div>
+
+        </ModalBody>
+        <ModalFooter>
+            <button class="btn btn-primary" @onclick="CloseModal">Close</button>
+            <button class="btn btn-primary" disabled="@(isadmin==false)" @onclick="SaveModal">Save</button>
+        </ModalFooter>
+    </BlazorModal>
+
+
+    <BlazorModal Title="Add Address" IsOpened="isAddressOpened">
+        <ModalBody>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2" for="Pager">Address</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="Address..." @bind="@Address2Add.address1" @bind:event="oninput" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2" for="Pager">City</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="City..." type="text" name="City" id="City" @bind="Address2Add.city" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2" for="Pager">State</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="State..." type="text" name="State" id="State" @bind="Address2Add.state" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-4">
+                        <label class="label2" for="Pager">Zip</label>
+                    </div>
+                    <div class="col-xs-6 col-lg-8">
+                        <input class="form-control" placeholder="Zip..." type="text" name="Zip" id="Zip" @bind="Address2Add.zip" />
+                    </div>
+                </div>
+
+
+
+                <div class="row">
+                    <div class="col-xs-6 col-sm-12">
+                        <div style="font-size:22px;  @errorAddrMsgColor">@((MarkupString)errorAddrMsg)</div>
+                    </div>
+                </div>
+
+
+                
+
+
+            </div>
+
+        </ModalBody>
+        <ModalFooter>
+            <button class="btn btn-primary" @onclick="CloseAddressModal">Close</button>
+            <button class="btn btn-primary"  @onclick="SaveAddressModal">Save</button>
+        </ModalFooter>
+    </BlazorModal>
+
+}
