@@ -17,13 +17,14 @@ namespace SSSCalBlazor.Models
     public class CustomAuthStateProvider : AuthenticationStateProvider
     {
         private readonly ILocalStorageService _localStorage;
-        private HttpClient client; 
+        private HttpClient client;
+        private CommonLib cmm;
 
-        public CustomAuthStateProvider(ILocalStorageService localStorage, IHttpClientFactory _ClientFactory)
+        public CustomAuthStateProvider(ILocalStorageService localStorage, IHttpClientFactory _ClientFactory, CommonLib _cmm)
         {
             _localStorage = localStorage;
             client = _ClientFactory.CreateClient();
-
+            cmm = _cmm;
         }
 
 
@@ -126,7 +127,8 @@ namespace SSSCalBlazor.Models
                 client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
                 //var result = await client.PostAsync("http://localhost:3600/api/refreshtoken?token=" + token, null);
-                var result = await client.PostAsync("https://www.schuebelsoftware.com/sso/api/refreshtoken?token=" + token, null);
+                //var result = await client.PostAsync("https://www.schuebelsoftware.com/sso/api/refreshtoken?token=" + token, null);
+                var result = await client.PostAsync($"{cmm.SSO_URL}/api/refreshtoken?token=" + token, null);
 
                 var tokestr = await result.Content.ReadAsStringAsync();
                 if (tokestr == "Unauthorized") return null;

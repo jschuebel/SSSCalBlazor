@@ -15,13 +15,12 @@ using System.Text;
 
 namespace SSSCalBlazor.Models
 {
-    public interface IPersonService
+    public interface IEventService
     {
-        Task<Tuple<int, List<PeopleModel>>> GetPeople(int currentPage, int pageSize, string sortKey, string sortDirection, string searchString);
-        Task<PeopleModel> Save(PeopleModel person);
-        Task<EventModel> GetDOB(int userID);
+        Task<Tuple<int, List<EventModel>>> GetEvent(int currentPage, int pageSize, string sortKey, string sortDirection, string searchString);
+        Task<EventModel> Save(EventModel person);
     }
-    public class PersonService : IPersonService
+    public class EventService : IEventService
     {
         public HttpClient _client { get; set; }
         private readonly ILocalStorageService _localStorage;
@@ -29,9 +28,9 @@ namespace SSSCalBlazor.Models
 
         public int TotalRows = 0;
 
-        public PersonService(ILocalStorageService localStorage, HttpClient client, CommonLib cmm) { _client = client; _localStorage = localStorage; _cmm = cmm; }
+        public EventService(ILocalStorageService localStorage, HttpClient client, CommonLib cmm) { _client = client; _localStorage = localStorage; _cmm = cmm; }
 
-        public async Task<PeopleModel> Save(PeopleModel person)
+        public async Task<EventModel> Save(EventModel person)
         {
             string token = await _localStorage.GetItemAsStringAsync("accesstoken");
 
@@ -48,7 +47,7 @@ namespace SSSCalBlazor.Models
             var tokestr = await result.Content.ReadAsStringAsync();
             if (result.IsSuccessStatusCode)
             {
-                person = JsonSerializer.Deserialize<PeopleModel>(tokestr);
+                person = JsonSerializer.Deserialize<EventModel>(tokestr);
             }
             else
             {
@@ -58,53 +57,21 @@ namespace SSSCalBlazor.Models
         }
 
 
-        public async Task<Tuple<int, List<PeopleModel>>> GetPeople(int currentPage, int pageSize, string sortKey, string sortDirection, string searchString)
+        public async Task<Tuple<int, List<EventModel>>> GetEvent(int currentPage, int pageSize, string sortKey, string sortDirection, string searchString)
         {
             var filterParams = new System.Text.StringBuilder($"page={currentPage}&pageSize={pageSize}&sort[0][field]={sortKey}&sort[0][dir]={sortDirection}");
             if (!string.IsNullOrEmpty(searchString))
                 filterParams.Append(searchString);
             _client.DefaultRequestHeaders.Clear();
-            //var httpResponse = await _client.GetAsync($"https://www.schuebelsoftware.com/SSSCalWebAPI/api/person?{filterParams}", HttpCompletionOption.ResponseHeadersRead);
-            //var httpResponse = await _client.GetAsync($"https://localhost:5011/api/person?{filterParams}", HttpCompletionOption.ResponseHeadersRead);
-            var httpResponse = await _client.GetAsync($"{_cmm.API_URL}/api/person?{filterParams}", HttpCompletionOption.ResponseHeadersRead);
-            List<PeopleModel> lst = null;
-            Tuple<int, List<PeopleModel>> retVal = null;
-
-            //client.DefaultRequestHeaders.Authorization=new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", savedToken);
-            httpResponse.EnsureSuccessStatusCode(); // throws if not 200-299
-
-            if (httpResponse.Content is object && httpResponse.Content.Headers.ContentType.MediaType == "application/json")
-            {
-                if (httpResponse.Headers.Contains("Paging-TotalRecords"))
-                {
-                    var hdrRecordCount = httpResponse.Headers.GetValues("Paging-TotalRecords").FirstOrDefault();
-                    TotalRows = int.Parse(hdrRecordCount);
-                }
-
-                var contentStream = await httpResponse.Content.ReadAsStreamAsync();
-                var streamReader = new StreamReader(contentStream);
-                lst= JsonSerializer.Deserialize<List<PeopleModel>>(streamReader.ReadToEnd());
-                retVal = new Tuple<int, List<PeopleModel>>(TotalRows, lst);
-            }
-            return retVal;
-
-        }
-
-        //https://www.schuebelsoftware.com/SSSCalWebAPI/api/event?filter[logic]=and&filter[filters][0][field]=UserId&filter[filters][0][operator]=eq&filter[filters][0][value]=1&filter[filters][1][field]=TopicId&filter[filters][1][operator]=eq&filter[filters][1][value]=1
-
-        public async Task<EventModel> GetDOB(int userID)
-        {
-            var filterParams = new System.Text.StringBuilder($"filter[logic]=and&filter[filters][0][field]=UserId&filter[filters][0][operator]=eq&filter[filters][0][value]={userID}&filter[filters][1][field]=TopicId&filter[filters][1][operator]=eq&filter[filters][1][value]=1");
-            _client.DefaultRequestHeaders.Clear();
             //var httpResponse = await _client.GetAsync($"https://www.schuebelsoftware.com/SSSCalWebAPI/api/event?{filterParams}", HttpCompletionOption.ResponseHeadersRead);
             //var httpResponse = await _client.GetAsync($"https://localhost:5011/api/event?{filterParams}", HttpCompletionOption.ResponseHeadersRead);
             var httpResponse = await _client.GetAsync($"{_cmm.API_URL}/api/event?{filterParams}", HttpCompletionOption.ResponseHeadersRead);
-            
             List<EventModel> lst = null;
-            EventModel retVal = null;
+            Tuple<int, List<EventModel>> retVal = null;
 
             //client.DefaultRequestHeaders.Authorization=new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", savedToken);
             httpResponse.EnsureSuccessStatusCode(); // throws if not 200-299
+
             if (httpResponse.Content is object && httpResponse.Content.Headers.ContentType.MediaType == "application/json")
             {
                 if (httpResponse.Headers.Contains("Paging-TotalRecords"))
@@ -115,8 +82,8 @@ namespace SSSCalBlazor.Models
 
                 var contentStream = await httpResponse.Content.ReadAsStreamAsync();
                 var streamReader = new StreamReader(contentStream);
-                lst = JsonSerializer.Deserialize<List<EventModel>>(streamReader.ReadToEnd());
-                retVal = lst.First();
+                lst= JsonSerializer.Deserialize<List<EventModel>>(streamReader.ReadToEnd());
+                retVal = new Tuple<int, List<EventModel>>(TotalRows, lst);
             }
             return retVal;
 

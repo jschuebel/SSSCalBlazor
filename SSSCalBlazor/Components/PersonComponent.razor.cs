@@ -252,7 +252,7 @@ namespace SSSCalBlazor.Components
             await AuthStateProvider.GetAuthenticationStateAsync();
             try
             {
-                selectedCopyAddress = await svcA.SaveAddress(Address2Add);
+                selectedCopyAddress = await svcA.Save(Address2Add);
 
                 var retvAddr = await svcA.GetAddress(1, 999, "address1", "asc", null);
                 addressData = retvAddr.Item2;
@@ -283,7 +283,7 @@ namespace SSSCalBlazor.Components
                 //bool confirmed = await ((IJSInProcessRuntime)jsRuntime).InvokeAsync<bool>("confirm", new object[] { $"Updating({selectedPerson.name}, {selectedPerson.dateOfBirth}, {selectedPerson.homePhone}).\n\nAre you sure?" });
                 //if (confirmed)
 
-                var nwPerson = await svc.SavePerson(selectedCopyPerson);
+                var nwPerson = await svc.Save(selectedCopyPerson);
                 errorMsgColor = "color:green;";
                 errorMsg = $"{selectedPerson.name} Saved...";
                 await Search(holdSearchString);

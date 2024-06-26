@@ -18,7 +18,8 @@ namespace SSSCalBlazor.Models
             //services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(navigationManager.BaseUri) });
             services.AddScoped<IPersonService, PersonService>();
             services.AddScoped<IAddressService, AddressService>();
-
+            services.AddScoped<IEventService, EventService>();
+            
             return services;
         }
     }

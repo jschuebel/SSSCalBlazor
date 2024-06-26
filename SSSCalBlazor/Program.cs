@@ -7,6 +7,7 @@ using SSSCalBlazor.Models;
 
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 
 
@@ -20,14 +21,15 @@ builder.Services.AddServerSideBlazor().AddHubOptions(options => options.MaximumR
 builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddHttpClient();
+
+var cmm = new CommonLib(builder.Configuration);
+builder.Services.AddSingleton(cmm);
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 //builder.Services.AddAuthorizationCore();
 
 //builder.Services.AddTransient(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 builder.Services.AddMYServices();// builder.Environment.BaseAddress);
-
-
 
 var app = builder.Build();
 
