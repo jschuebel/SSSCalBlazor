@@ -71,26 +71,30 @@ namespace SSSCalBlazor.Components
         public string errorMsg { get; set; }
         public string errorMsgColor { get; set; } = "color:red;";
 
-        protected override async Task OnInitializedAsync()
+        protected override async Task OnAfterRenderAsync(bool firstRender) //OnInitializedAsync()
         {
-            if (authenticationState is not null)
+            if (firstRender)
             {
-                var authState = await authenticationState;
-                var User = authState.User;
-                isadmin = User.IsInRole("admin");
+                if (authenticationState is not null)
+                {
+                    var authState = await authenticationState;
+                    var User = authState.User;
+                    isadmin = User.IsInRole("admin");
+                }
+
+                var retvAddr = await svcA.GetAddress(1, 999, "address1", "asc", null);
+                addressData = retvAddr.Item2;
+
+                var noneselected = addressData.FirstOrDefault(x => x.address1 == "" && x.state == "??");
+                if (noneselected != null)
+                {
+                    noneselected.address1 = null;
+                    noneselected.state = null;
+                }
+
+                await Search();
+                StateHasChanged();
             }
-
-            var retvAddr = await svcA.GetAddress(1, 999, "address1", "asc", null);
-            addressData = retvAddr.Item2;
-
-            var noneselected = addressData.FirstOrDefault(x => x.address1 == "" && x.state == "??");
-            if (noneselected != null)
-            {
-                noneselected.address1 = null;
-                noneselected.state = null;
-            }
-
-            await Search();
         }
 
 
@@ -193,6 +197,7 @@ namespace SSSCalBlazor.Components
             currentPage = 1;
             holdSearchString = srch;
             await Search(srch);
+
         }
 
         async Task Sort(string fldName)

@@ -1,11 +1,19 @@
 ﻿<div class="container-fluid">
     <div class="row" @onclick="@(e => OnSort(e))">
-        @ChildContent
-        &nbsp;<i class="@cssClass()" aria-hidden="true"></i>
+        <div class="col">@ChildContent &nbsp;<i class="@cssClass()" aria-hidden="true"></i></div>
     </div>
+    @if (Filter.HasDelegate)
+    {
+        <div class="row">
+            <input type="text" class="form-control" placeholder="<<Search>>" @oninput="@FilterChangedAsync" />
+        </div>
+    }
+    else
+    {
     <div class="row">
-        <input type="text" class="form-control" placeholder="<<Search>>"  @oninput="@FilterChangedAsync" />
+            <div style="height:37px;">&nbsp;</div>
     </div>
+    }
 </div>
 
 
@@ -46,7 +54,8 @@
     private void firemethod()
     {
         isTrying = false;
-        Filter.InvokeAsync(Tuple.Create(ColumnName, ColumnType, _searchString));
+        //if (Filter.HasDelegate)
+            Filter.InvokeAsync(Tuple.Create(ColumnName, ColumnType, _searchString));
     }
 
     string cssClass() {
@@ -65,8 +74,8 @@
     private void OnSort(MouseEventArgs e)
     {
         //Console.WriteLine($"!!!!! hit SORT({ColumnName})");
-
-        Sort.InvokeAsync(ColumnName);
+        if (Sort.HasDelegate)
+            Sort.InvokeAsync(ColumnName);
        
     }
 }

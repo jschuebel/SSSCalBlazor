@@ -36,19 +36,19 @@ else
         <ModalHeader>
             <tr>
                 <th class="smallSCR medSCR">
-                    <MenuHeader ColumnName="Id" ColumnType="int" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">ID</MenuHeader>
+                    <MenuHeader ColumnName="Id" ColumnType="int" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort">ID</MenuHeader>
                 </th>
                 <th>
                     <MenuHeader ColumnName="Name" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">Name</MenuHeader>
                 </th>
                 <th class="smallSCR">
-                    <MenuHeader ColumnName="UpdatedOn" ColumnType="date" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">Updated On</MenuHeader>
+                    <MenuHeader ColumnName="UpdatedOn" ColumnType="date" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" >Updated On</MenuHeader>
                 </th>
                 <th>
-                    <MenuHeader ColumnName="PreviousValue" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">Previous Value</MenuHeader>
+                    <MenuHeader ColumnName="PreviousValue" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" >Previous Value</MenuHeader>
                 </th>
                 <th>
-                    <MenuHeader ColumnName="NewValue" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">New Value</MenuHeader>
+                    <MenuHeader ColumnName="NewValue" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" >New Value</MenuHeader>
                 </th>
             </tr>
         </ModalHeader>
@@ -81,18 +81,21 @@ else
 
 
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender) //OnInitializedAsync()
     {
-
-        //PeopleList = await Http.GetFromJsonAsync<List<PeopleModel>>($"http://api.schuebelsoftware.com/api/person?{filterParams}");
-        PeopleList = await Http.GetFromJsonAsync<List<PersonHistoryModel>>($"https://www.schuebelsoftware.com/SSSCalWebAPI/api/person/history");
-        //PeopleList = await Http.GetFromJsonAsync<List<PersonHistoryModel>>("https://localhost:5011/api/person/history");
-
-        if (authenticationState is not null)
+        if (firstRender)
         {
-            var authState = await authenticationState;
-            var User = authState.User;
-            isLoggedIn = ((System.Security.Claims.ClaimsIdentity)authState.User.Identity).IsAuthenticated;
+            //PeopleList = await Http.GetFromJsonAsync<List<PeopleModel>>($"http://api.schuebelsoftware.com/api/person?{filterParams}");
+            PeopleList = await Http.GetFromJsonAsync<List<PersonHistoryModel>>($"https://www.schuebelsoftware.com/SSSCalWebAPI/api/person/history");
+            //PeopleList = await Http.GetFromJsonAsync<List<PersonHistoryModel>>("https://localhost:5011/api/person/history");
+
+            if (authenticationState is not null)
+            {
+                var authState = await authenticationState;
+                var User = authState.User;
+                isLoggedIn = ((System.Security.Claims.ClaimsIdentity)authState.User.Identity).IsAuthenticated;
+            }
+            StateHasChanged();
         }
     }
 
