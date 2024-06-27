@@ -1,12 +1,31 @@
-﻿<div class="container-fluid">
+﻿@inject IJSRuntime JSRuntime;
+
+<div class="container-fluid">
     <div class="row" @onclick="@(e => OnSort(e))">
         <div class="col">@ChildContent &nbsp;<i class="@cssClass()" aria-hidden="true"></i></div>
     </div>
     @if (Filter.HasDelegate)
     {
-        <div class="row">
-            <input type="text" class="form-control" placeholder="<<Search>>" @oninput="@FilterChangedAsync" />
-        </div>
+        if (ColumnType != "date")
+        {
+            <div class="row">
+                <input type="text" class="form-control" placeholder="<<Search>>" @oninput="@FilterChanged" />
+            </div>
+        }
+        else 
+        {
+            <div class="row">
+                <div class="col-3">
+                    <input type="date" @ref="inpElement1" class="form-control" placeholder="<<Search>>" @oninput="@FilterChanged" />
+                </div>
+                <div class="col-3">
+                    <input type="date" @ref="inpElement2" class="form-control" placeholder="<<Search>>" @oninput="@FilterChangedEnd" />
+                </div>
+                <div class="col-6">
+                    <i class="fa fa-times" @onclick="@(e => ClearDateFilter(e))" aria-hidden="true"></i>
+                </div>
+            </div>
+        }
     }
     else
     {
@@ -18,7 +37,7 @@
 
 
 @code {
-    [Parameter] public EventCallback<Tuple<string,string,string>> Filter { get; set; }
+    [Parameter] public EventCallback<Tuple<string,string,string,string>> Filter { get; set; }
     [Parameter] public EventCallback<string> Sort { get; set; }
     [Parameter] public string ColumnName { get; set; }
     [Parameter] public string ColumnType { get; set; }
@@ -26,9 +45,12 @@
     [Parameter] public RenderFragment ChildContent { get; set; }
     [Parameter] public string SortDir { get; set; }
     bool isTrying = false;
+    private ElementReference inpElement1;
+    private ElementReference inpElement2;
 
     private string _searchString;
-    private void FilterChangedAsync(ChangeEventArgs args)
+    private string _searchStringEnd;
+    private void FilterChanged(ChangeEventArgs args)
     {
         var wasEmpty = string.IsNullOrEmpty(_searchString);
         Console.WriteLine("onChange selectedEventID=" + args.Value);
@@ -42,8 +64,11 @@
             ;
         else
         {
-
             if (ColumnType == "date" && _searchString.Length < 8) return;
+            if (ColumnType == "date" && _searchString.Length >= 8) {
+                DateTime hld;
+                if (!DateTime.TryParse(_searchString,out hld)) return;
+            }
         }
 
         isTrying = true;
@@ -51,11 +76,43 @@
         Task.Delay(750).ContinueWith(t => firemethod());
     }
 
-    private void firemethod()
+    private void FilterChangedEnd(ChangeEventArgs args)
+    {
+        var wasEmpty = string.IsNullOrEmpty(_searchStringEnd);
+        Console.WriteLine("onChange selectedEventID=" + args.Value);
+
+        _searchStringEnd = args.Value.ToString().Trim();
+        //if had data and cleared, continue
+        if (string.IsNullOrEmpty(_searchStringEnd) && wasEmpty) return;
+        if (isTrying) return;
+
+        if (ColumnType == "date" && _searchStringEnd.Length == 0 && !wasEmpty)
+            ;
+        else
+        {
+            if (ColumnType == "date" && _searchStringEnd.Length < 8) return;
+            if (ColumnType == "date" && _searchStringEnd.Length >= 8)
+            {
+                DateTime hld;
+                if (!DateTime.TryParse(_searchStringEnd, out hld)) return;
+            }
+        }
+
+        isTrying = true;
+        if (ColumnType == null) ColumnType = "string";
+        Task.Delay(750).ContinueWith(t => firemethod());
+    }
+
+    private async void firemethod()
     {
         isTrying = false;
-        //if (Filter.HasDelegate)
-            Filter.InvokeAsync(Tuple.Create(ColumnName, ColumnType, _searchString));
+        if (Filter.HasDelegate)
+        {
+            InvokeAsync(() =>
+            {
+                Filter.InvokeAsync(Tuple.Create(ColumnName, ColumnType, _searchString, _searchStringEnd));
+            });
+        }
     }
 
     string cssClass() {
@@ -69,13 +126,30 @@
         }
         return "fa fa-sort";
     }
-
-
     private void OnSort(MouseEventArgs e)
     {
         //Console.WriteLine($"!!!!! hit SORT({ColumnName})");
         if (Sort.HasDelegate)
             Sort.InvokeAsync(ColumnName);
-       
+
+    }
+
+
+    private async Task ClearDateFilter(MouseEventArgs e)
+    {
+        await JSRuntime.InvokeVoidAsync("clearInputs", inpElement1, inpElement2);
+        DateTime hld;
+        var doRefresh = false;
+        if (DateTime.TryParse(_searchString, out hld))
+        {
+            _searchString = string.Empty; doRefresh = true;
+        }
+        if (DateTime.TryParse(_searchStringEnd, out hld))
+        {
+            _searchStringEnd = string.Empty; doRefresh = true;
+        }
+
+        if (doRefresh)
+            Task.Delay(250).ContinueWith(t => firemethod());
     }
 }

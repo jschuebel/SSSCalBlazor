@@ -12,6 +12,10 @@ window.getFolderWidth = function (tFolder) {
     return tFolder.offsetWidth;
 }
 
+window.clearInputs = function (inpRef1, inpRef2) {
+    inpRef1.value = "";
+    inpRef2.value = "";
+}
 
 window.getSelectOptions = function (selectRef) {
     var results = [];

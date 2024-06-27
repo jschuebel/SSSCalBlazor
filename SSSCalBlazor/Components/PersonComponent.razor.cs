@@ -174,7 +174,7 @@ namespace SSSCalBlazor.Components
         }
 
 
-        async Task Filter(Tuple<string, string, string> searchv)
+        async Task Filter(Tuple<string, string, string, string> searchv)
         {
             //ColumnName, ColumnType, _searchString
             Console.WriteLine($" column({searchv.Item1})  columnType({searchv.Item2}) searchString({searchv.Item3})");
@@ -186,10 +186,21 @@ namespace SSSCalBlazor.Components
                     srch = $"&filter[logic]=and&filter[filters][0][field]={searchv.Item1}&filter[filters][0][operator]=contains&filter[filters][0][value]={searchv.Item3}";
                 if (searchv.Item2 == "date")
                 {
-                    srch = $"&filter[logic]=and&filter[filters][0][field]={searchv.Item1}&filter[filters][0][operator]=eq&filter[filters][0][value]={searchv.Item3}";
+                    //srch = $"&filter[logic]=and&filter[filters][0][field]={searchv.Item1}&filter[filters][0][operator]=eq&filter[filters][0][value]={searchv.Item3}";
                     //create range
-                    //srch = $"&filter[logic]=and&filter[filters][0][field]={searchv.Item1}&filter[filters][0][operator]=gte&filter[filters][0][value]={searchv.Item3}";
-                    // &filter[filters][1][field]=Date&filter[filters][1][operator]=lte&filter[filters][1][value]=Mon+Apr+30+2018+00%3A00%3A00+GMT-0500+(Central+Daylight+Time)&_=1562110553341";
+                    srch = $"&filter[logic]=and&filter[filters][0][field]={searchv.Item1}&filter[filters][0][operator]=gte&filter[filters][0][value]={searchv.Item3}";
+                }
+                if (searchv.Item2 == "int")
+                    srch = $"&filter[logic]=and&filter[filters][0][field]={searchv.Item1}&filter[filters][0][operator]=eq&filter[filters][0][value]={searchv.Item3}";
+            }
+            if (!string.IsNullOrEmpty(searchv.Item4))
+            {
+                if (searchv.Item2 == "date")
+                {
+                    if (string.IsNullOrEmpty(searchv.Item3))
+                        srch = $"&filter[logic]=and&filter[filters][0][field]={searchv.Item1}&filter[filters][0][operator]=gte&filter[filters][0][value]={searchv.Item4}";
+                    if (!string.IsNullOrEmpty(searchv.Item3))
+                        srch += $"&filter[logic]=and&filter[filters][1][field]={searchv.Item1}&filter[filters][1][operator]=lte&filter[filters][1][value]={searchv.Item4}";
                 }
                 if (searchv.Item2 == "int")
                     srch = $"&filter[logic]=and&filter[filters][0][field]={searchv.Item1}&filter[filters][0][operator]=eq&filter[filters][0][value]={searchv.Item3}";
