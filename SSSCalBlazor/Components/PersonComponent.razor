@@ -53,7 +53,7 @@ else
                 <tr @onclick="@(e => ShowPop(e, g))">
                     <td class="smallSCR medSCR">@g.id</td>
                     <td>@g.name</td>
-                    <td class="smallSCR">@(g.dateOfBirth==null?"n/a":g.dateOfBirth.Value.ToShortDateString())</td>
+                    <td class="smallSCR">@(g.dateOfBirth == null || ((g.dateOfBirth != null) && g.dateOfBirth.Value.Year==1) ? "n/a" : g.dateOfBirth.Value.ToShortDateString())</td>
                     <td>@g.homePhone</td>
                 </tr>
             }

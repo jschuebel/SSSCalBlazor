@@ -15,13 +15,13 @@
         else 
         {
             <div class="row">
-                <div class="col-3">
+                <div class="col-md-5">
                     <input type="date" @ref="inpElement1" class="form-control" placeholder="<<Search>>" @oninput="@FilterChanged" />
                 </div>
-                <div class="col-3">
+                <div class="col-md-5">
                     <input type="date" @ref="inpElement2" class="form-control" placeholder="<<Search>>" @oninput="@FilterChangedEnd" />
                 </div>
-                <div class="col-6">
+                <div class="col-md-2">
                     <i class="fa fa-times" @onclick="@(e => ClearDateFilter(e))" aria-hidden="true"></i>
                 </div>
             </div>

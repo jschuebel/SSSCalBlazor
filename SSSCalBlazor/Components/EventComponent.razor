@@ -4,15 +4,21 @@
 
 
 
-<table class="table">
-    <thead>
+    <BlazorGrid CurrentPage="@currentPage" TotalRows="@TotalRows" pageSize="@pageSize" OnClick="PagingHandler">
+        <ModalHeader>
         <tr>
-            <th>Date</th>
-            <th class="smallSCR">UserName</th>
-            <th>Topic</th>
+            <th style="width:25%;">
+                <MenuHeader ColumnName="DateOfBirth" ColumnType="date" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">Date</MenuHeader>
+            </th>
+            <th class="smallSCR">
+                <MenuHeader ColumnName="userName" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">UserName</MenuHeader>
+             </th>
+            <th>
+                <MenuHeader ColumnName="topic" SelectedColumn="@sortKey" SortDir="@sortDirection" Sort="Sort" Filter="Filter">Topic</MenuHeader>
+            </th>
         </tr>
-    </thead>
-    <tbody>
+        </ModalHeader>
+        <ModalBody>
         @foreach (var dat in eventData)
         {
             <tr @onclick="@(e => ShowPop(e, dat))">
@@ -21,16 +27,8 @@
                 <td>@dat.topic</td>
             </tr>
         }
-    </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="3">
-                <Pagination TotalRecords="@TotalRows" PageSize="@pageSize" OnClick="PagingHandler"></Pagination>
-            </td>
-        </tr>
-    </tfoot>
-
-</table>
+    </ModalBody>
+</BlazorGrid>
 
 
 <BlazorModal Title="Update Event" IsOpened="isOpened">

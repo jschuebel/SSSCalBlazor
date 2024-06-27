@@ -68,16 +68,20 @@ namespace SSSCalBlazor.Components
             //}
         }
 
-        protected override async Task OnInitializedAsync()
+        protected override async Task OnAfterRenderAsync(bool firstRender) //
         {
-            if (authenticationState is not null)
+            if (firstRender)
             {
-                var authState = await authenticationState;
-                var User = authState.User;
-                isadmin = User.IsInRole("admin");
-            }
+                if (authenticationState is not null)
+                {
+                    var authState = await authenticationState;
+                    var User = authState.User;
+                    isadmin = User.IsInRole("admin");
+                }
 
-            await Search();
+                await Search();
+                StateHasChanged();
+            }
         }
 
         private void ShowPop(MouseEventArgs e, EventModel p)
@@ -104,7 +108,11 @@ namespace SSSCalBlazor.Components
             //            ((IJSInProcessRuntime)jsRuntime).InvokeVoid("alert", newMessage);
         }
 
-
-
+        async Task Filter(Tuple<string, string, string, string> searchv)
+        {
+        }
+        async Task Sort(string fldName)
+        {
+        }
     }
 }
