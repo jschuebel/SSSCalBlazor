@@ -150,47 +150,23 @@ namespace SSSCalBlazor.Components
             //            ((IJSInProcessRuntime)jsRuntime).InvokeVoid("alert", newMessage);
         }
 
-        protected async Task ShowPop(MouseEventArgs e, PeopleModel p)
-        {
-            /*Fluxor state changes
-                        dispatch.Dispatch(new AddPerson(p));
-                        return;
-            */
-            errorMsgColor = "color:red;";
-            errorMsg = string.Empty;
-            hasChanged=false;
-
-            selectedPerson = p;
-            selectedCopyPerson = new PeopleModel(p);
-
-            var retDOB = await svc.GetDOB(selectedCopyPerson.id);
-
-            if (selectedPerson.addressId != 0)
-            {
-                selectedAddress = addressData.First(x => x.id == selectedPerson.addressId);
-                selectedCopyAddress = new AddressModel(selectedAddress);
-            }
-
-            isOpened = true;
-
-        }
-
         async Task OnAddressChange(KeyboardEventArgs args)
         {
 
             hasChanged = selectedAddress.address1 != selectedCopyAddress.address1;
 
-//            errorMsg = hasChanged ? "changed" : string.Empty;
+            //            errorMsg = hasChanged ? "changed" : string.Empty;
         }
         async Task OnWorkChange(KeyboardEventArgs args)
         {
 
             hasChanged = selectedPerson.work != selectedCopyPerson.work;
-            if (hasChanged && string.IsNullOrEmpty(selectedCopyPerson.work?.Trim())) {
+            if (hasChanged && string.IsNullOrEmpty(selectedCopyPerson.work?.Trim()))
+            {
                 selectedCopyPerson.work = null;
             }
 
-  //          errorMsg = hasChanged ? "changed" : string.Empty;
+            //          errorMsg = hasChanged ? "changed" : string.Empty;
         }
 
 
@@ -199,7 +175,7 @@ namespace SSSCalBlazor.Components
             //ColumnName, ColumnType, _searchString
             Console.WriteLine($" column({searchv.Item1})  columnType({searchv.Item2}) searchString({searchv.Item3})");
             //https://www.schuebelsoftware.com/SSSCalWebAPI/api/person?page=1&pageSize=10&sort[0][field]=name&sort[0][dir]=asc&filter[logic]=and&filter[filters][0][field]=homePhone&filter[filters][0][operator]=contains&filter[filters][0][value]=678
-            string srch =null;
+            string srch = null;
             if (!string.IsNullOrEmpty(searchv.Item3))
             {
                 if (searchv.Item2 == "string")
@@ -222,7 +198,8 @@ namespace SSSCalBlazor.Components
         async Task Sort(string fldName)
         {
 
-            if (sortKey == fldName) {
+            if (sortKey == fldName)
+            {
                 if (sortDirection == "asc")
                     sortDirection = "desc";
                 else sortDirection = "asc";
@@ -236,6 +213,39 @@ namespace SSSCalBlazor.Components
             await Search(holdSearchString);
         }
 
+
+        protected async Task ShowPop(MouseEventArgs e, PeopleModel p)
+        {
+            /*Fluxor state changes
+                        dispatch.Dispatch(new AddPerson(p));
+                        return;
+            */
+            errorMsgColor = "color:red;";
+            errorMsg = string.Empty;
+            hasChanged=false;
+
+            if (e == null && p == null)
+            {
+                selectedCopyPerson = new PeopleModel();
+            }
+            else
+            {
+                selectedPerson = p;
+                selectedCopyPerson = new PeopleModel(p);
+
+                var retDOB = await svc.GetDOB(selectedCopyPerson.id);
+
+                if (selectedPerson.addressId != 0)
+                {
+                    selectedAddress = addressData.First(x => x.id == selectedPerson.addressId);
+                    selectedCopyAddress = new AddressModel(selectedAddress);
+                }
+            }
+            isOpened = true;
+
+        }
+
+ 
         //disabled="@(isadmin==false)"
         private async Task ShowPopAddress()
         {
@@ -282,10 +292,13 @@ namespace SSSCalBlazor.Components
                 //((IJSInProcessRuntime)jsRuntime).InvokeVoid("alert", $"Updating({selectedPerson.name}, {selectedPerson.dateOfBirth}, {selectedPerson.homePhone}). Are you sure?");
                 //bool confirmed = await ((IJSInProcessRuntime)jsRuntime).InvokeAsync<bool>("confirm", new object[] { $"Updating({selectedPerson.name}, {selectedPerson.dateOfBirth}, {selectedPerson.homePhone}).\n\nAre you sure?" });
                 //if (confirmed)
-
+                if (selectedCopyPerson.id==0 && selectedCopyPerson.addressId==0)
+                {
+                    selectedCopyPerson.addressId = 1;
+                }
                 var nwPerson = await svc.Save(selectedCopyPerson);
                 errorMsgColor = "color:green;";
-                errorMsg = $"{selectedPerson.name} Saved...";
+                errorMsg = $"{nwPerson.name} Saved...";
                 await Search(holdSearchString);
             }
             catch (Exception ex)

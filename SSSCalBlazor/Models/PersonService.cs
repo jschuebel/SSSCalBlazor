@@ -33,6 +33,7 @@ namespace SSSCalBlazor.Models
 
         public async Task<PeopleModel> Save(PeopleModel person)
         {
+            HttpResponseMessage result;
             string token = await _localStorage.GetItemAsStringAsync("accesstoken");
 
             _client.DefaultRequestHeaders.Clear();
@@ -43,8 +44,13 @@ namespace SSSCalBlazor.Models
 
             //var result = await _client.PutAsync($"https://www.schuebelsoftware.com/SSSCalWebAPI/api/person/{person.id}", content);
             //var result = await _client.PutAsync($"https://localhost:5011/api/person/{person.id}", content);
-            var result = await _client.PutAsync($"{_cmm.API_URL}/api/person/{person.id}", content);
-
+            if (person.id == 0)
+            {
+                result = await _client.PostAsync($"{_cmm.API_URL}/api/person", content);
+            }
+            else { 
+                result = await _client.PutAsync($"{_cmm.API_URL}/api/person/{person.id}", content);
+            }
             var tokestr = await result.Content.ReadAsStringAsync();
             if (result.IsSuccessStatusCode)
             {

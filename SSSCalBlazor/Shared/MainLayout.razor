@@ -3,6 +3,7 @@
 @inject ILocalStorageService LocalStorage
 @inject IJSRuntime jsRuntime;
 @inject AuthenticationStateProvider AuthStateProvider
+@inject CommonLib _cmm
 
 @using System.Security.Claims;
 @using Microsoft.AspNetCore.Components.Authorization;
@@ -36,8 +37,7 @@
             <NavLink class="nav-link" href="fetchdata">
                 <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
             </NavLink>
-            <!--NavLink class="nav-link" href="http://localhost:3600/api/login?ssoReturn=https://localhost:7064/login" -->
-            <NavLink class="nav-link" href="https://www.schuebelsoftware.com/sso/api/login?ssoReturn=https://www.schuebelsoftware.com/login">
+             <NavLink class="nav-link" href="@ssourl">
                 <span class="oi oi-list-rich" aria-hidden="true"></span> Login
             </NavLink>
             <NavLink class="nav-link" href="#" @onclick="@(e => LogOut())">
@@ -53,6 +53,14 @@
         </div>
     </div>
 @code {
+    public string ssourl { get; set; }
+    //<NavLink class="nav-link" href="http://localhost:3600/api/login?ssoReturn=https://localhost:7064/login" >
+    //https://www.schuebelsoftware.com/sso/api/login?ssoReturn=https://www.schuebelsoftware.com/login
+
+    protected override async Task OnInitializedAsync()
+    {
+        ssourl = $"{_cmm.SSO_URL}/api/login?ssoReturn={_cmm.SSOReturn_URL}";
+    }
     protected async Task LogOut()
     {
         string token = await LocalStorage.GetItemAsStringAsync("accesstoken");
@@ -60,8 +68,9 @@
         Http.DefaultRequestHeaders.Clear();
         Http.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
-        var result = await Http.PostAsync("https://www.schuebelsoftware.com/sso/api/logout", null);
+        //var result = await Http.PostAsync("https://www.schuebelsoftware.com/sso/api/logout", null);
         //var result = await Http.PostAsync("http://localhost:3600/api/logout", null);
+        var result = await Http.PostAsync($"{_cmm.SSO_URL}/api/logout", null);
 
         var tokestr = await result.Content.ReadAsStringAsync();
 

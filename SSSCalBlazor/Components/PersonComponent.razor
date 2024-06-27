@@ -4,7 +4,12 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-8">
-            <div class="text-xl font-bold my-4">Manage People</div>
+            <div class="text-xl font-bold my-4">Manage People&nbsp;
+                @if (isadmin)
+                {
+                    <i class="fa fa-plus" aria-hidden="true" @onclick="@(e => ShowPop(null, null))"></i>
+                }
+            </div>
         </div>
     </div>
     <div class="row">
@@ -48,7 +53,7 @@ else
                 <tr @onclick="@(e => ShowPop(e, g))">
                     <td class="smallSCR medSCR">@g.id</td>
                     <td>@g.name</td>
-                    <td class="smallSCR">@(g.dateOfBirth.Year==1?"n/a":g.dateOfBirth.ToShortDateString())</td>
+                    <td class="smallSCR">@(g.dateOfBirth==null?"n/a":g.dateOfBirth.Value.ToShortDateString())</td>
                     <td>@g.homePhone</td>
                 </tr>
             }
@@ -70,10 +75,10 @@ else
                 </div>
                 <div class="row">
                     <div class="col-xs-6 col-sm-4">
-                        <label class="label2">Home_Phone</label>
+                        <label class="label2">Home Phone</label>
                     </div>
                     <div class="col-xs-6 col-lg-8">
-                        <input class="form-control" type="text" name="Home_Phone" id="Home_Phone" @bind="selectedCopyPerson.homePhone" />
+                        <input class="form-control" placeholder="Home Phone..." type="text" name="Home_Phone" id="Home_Phone" @bind="selectedCopyPerson.homePhone" />
                     </div>
                 </div>
                 <div class="row">

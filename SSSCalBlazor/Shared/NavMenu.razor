@@ -1,4 +1,6 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
+﻿@inject CommonLib _cmm
+
+<div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href=""> <img src="/Images/logo.png"  style='height:88px' /></a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
@@ -43,8 +45,7 @@
             </NavLink>
         </li>
         <li class="nav-item px-3">
-            <!-- NavLink class="nav-link" href="http://localhost:3600/api/login?ssoReturn=https://localhost:5001/login?pg=Counter" -->
-            <NavLink class="nav-link" href="https://www.schuebelsoftware.com/sso/api/login?ssoReturn=https://www.schuebelsoftware.com/login">
+            <NavLink class="nav-link" href="@ssourl">
                 <span class="oi oi-list-rich" aria-hidden="true"></span> Login
             </NavLink>
         </li>
@@ -62,6 +63,13 @@
     private bool collapseNavMenu = true;
 
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    public string ssourl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ssourl = $"{_cmm.SSO_URL}/api/login?ssoReturn={_cmm.SSOReturn_URL}";
+    }
 
     private void ToggleNavMenu()
     {

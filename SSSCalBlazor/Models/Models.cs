@@ -26,7 +26,7 @@ namespace SSSCalBlazor.Models
 
         public int id { get; set; }
         public string name { get; set; }
-        public DateTime dateOfBirth { get; set; }
+        public DateTime? dateOfBirth { get; set; }
         public string homePhone { get; set; }
         public string pager { get; set; }
         public string work { get; set; }
