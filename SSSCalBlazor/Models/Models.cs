@@ -5,6 +5,13 @@ using System.Threading.Tasks;
 
 namespace SSSCalBlazor.Models
 {
+    public class TopicModel
+    {
+        public int Id { get; set; }
+        public string TopicTitle { get; set; }
+        public System.DateTime Createdate { get; set; }
+    }
+
     public class PeopleModel
     {
         public PeopleModel() {}
@@ -52,6 +59,22 @@ namespace SSSCalBlazor.Models
 
     public class EventModel
     {
+        public EventModel() { }
+        public EventModel(EventModel org)
+        {
+            this.id = org.id;
+            this.description = org.description;
+            this.date = org.date;
+            this.userName = org.userName;
+            this.userId = org.userId;
+            this.topicId = org.topicId;
+            this.repeatYearly = org.repeatYearly;
+            this.repeatMonthly = org.repeatMonthly;
+            this.topic = org.topic;
+            this.topicf=new Topic(org.topicf);
+
+        }
+
         public int id { get; set; }
         public string description { get; set; }
         public string displayDescription
@@ -106,6 +129,13 @@ namespace SSSCalBlazor.Models
 
     public class Topic
     {
+        public Topic() { }
+        public Topic(Topic org)
+        {
+            this.id = org.id;
+            this.topicTitle = org.topicTitle;
+        }
+
         //{"id":1,"topicTitle":"Birthday","createdate":"1999-11-10T00:00:00"}
         public int id { get; set; }
         public string topicTitle { get; set; }

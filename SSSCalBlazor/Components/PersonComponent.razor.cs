@@ -329,7 +329,7 @@ namespace SSSCalBlazor.Components
         {
             if (hasChanged)
             {
-                bool confirmed = await ((IJSInProcessRuntime)jsRuntime).InvokeAsync<bool>("confirm", new object[] { $"{selectedPerson.name} has been changed.\n\nExit without saving. Are you sure?" });
+                bool confirmed = await jsRuntime.InvokeAsync<bool>("confirm", new object[] { $"{selectedCopyPerson.name} has been changed.\n\nExit without saving. Are you sure?" });
                 if (confirmed)
                 {
                     isOpened = false;

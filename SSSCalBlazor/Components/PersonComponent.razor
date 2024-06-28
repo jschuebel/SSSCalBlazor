@@ -63,7 +63,7 @@ else
     <BlazorModal Title="Update Person" IsOpened="isOpened">
         <ModalBody>
             <div class="container-fluid">
-                <div class="row">
+                <div class="row mb-1">
                     <div class="col-xs-6 col-sm-4">
                         <label class="label2">Name</label>
                     </div>
@@ -73,7 +73,7 @@ else
                     <input type="hidden" id="id" name="id" />
                     <input type="hidden" id="Address_ID" name="Address_ID" />
                 </div>
-                <div class="row">
+                <div class="row mb-1">
                     <div class="col-xs-6 col-sm-4">
                         <label class="label2">Home Phone</label>
                     </div>
@@ -81,7 +81,7 @@ else
                         <input class="form-control" placeholder="Home Phone..." type="text" name="Home_Phone" id="Home_Phone" @bind="selectedCopyPerson.homePhone" />
                     </div>
                 </div>
-                <div class="row">
+                <div class="row mb-1">
                     <div class="col-xs-6 col-sm-4">
                         <label class="label2">Email Adress</label>
                     </div>
@@ -89,7 +89,7 @@ else
                         <input class="form-control" placeholder="Email Address..." type="text" name="E_Mail" @bind="selectedCopyPerson.eMail" />
                     </div>
                 </div>
-                <div class="row">
+                <div class="row mb-1">
                     <div class="col-xs-6 col-sm-4">
                         <label class="label2">Date of Birth</label>
                     </div>
@@ -97,7 +97,7 @@ else
                         <input class="form-control" type="date" @bind="selectedCopyPerson.dateOfBirth" />
                     </div>
                 </div>
-                <div class="row">
+                <div class="row mb-1">
                     <div class="col-xs-6 col-sm-4">
                         <label class="label2" for="Work">Work</label>
                     </div>
@@ -105,7 +105,7 @@ else
                         <input class="form-control" placeholder="Work Phone..." type="text" name="Work" id="Work" @bind="selectedCopyPerson.work" @bind:event="oninput" @onkeyup="OnWorkChange" />
                     </div>
                 </div>
-                <div class="row">
+                <div class="row mb-1">
                     <div class="col-xs-6 col-sm-4">
                         <label class="label2" for="Pager">Pager</label>
                     </div>
@@ -113,7 +113,7 @@ else
                         <input class="form-control" placeholder="Pager..." type="text" name="Pager" id="Pager" @bind="selectedCopyPerson.pager" />
                     </div>
                 </div>
-                <div class="row">
+                <div class="row mb-2">
                     <div class="col-xs-6 col-sm-4">
                         <label class="label2" for="Fax">Fax</label>
                     </div>
@@ -125,29 +125,36 @@ else
                     <hr />
                 </div>
 
-                <div class="row">
+                <div class="row mb-1">
                     <div class="col-xs-6 col-sm-4">
                     </div>
                     <div class="col-xs-6 col-lg-8">
-                        <select @onchange="onChange" style="font-family: monospace, monospace;">
-                            @foreach (var cnt in addressData)
+                        <div class="row">
+                            <div class="col-11">
+                                <select class="form-select" @onchange="onChange" style="font-family: monospace, monospace;width:98%;">
+                                    @foreach (var cnt in addressData)
+                                    {
+                                        var issel = false;
+                                        if (cnt.id == selectedCopyAddress.id) issel = true;
+                                        if (string.IsNullOrEmpty(cnt.address1)) {
+                                        <option value="@cnt.id" selected=@issel>@("<<Select Address>>")</option>
+                                        } else {
+                                        <option value="@cnt.id" selected=@issel>@((MarkupString)cnt.address1)</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-1">
+                                @if (isadmin)
                             {
-                                var issel = false;
-                                if (cnt.id == selectedCopyAddress.id) issel = true;
-                                if (string.IsNullOrEmpty(cnt.address1)) {
-                                <option value="@cnt.id" selected=@issel>@("<<Select Address>>")</option>
-                                } else {
-                                <option value="@cnt.id" selected=@issel>@((MarkupString)cnt.address1)</option>
-                                }
+                                <i class="fa fa-plus" aria-hidden="true" @onclick="ShowPopAddress"></i>
                             }
-                        </select>&nbsp;
-                        @if (isadmin)
-                        {
-                            <i class="fa fa-plus" aria-hidden="true" @onclick="ShowPopAddress"></i>
-                        }
+                            </div>
+                        </div>
+
                      </div>
                 </div>
-                <div class="row">
+                <div class="row mb-1">
                     <div class="col-xs-6 col-sm-4">
                         <label class="label2" for="Pager">Address</label>
                     </div>
@@ -155,7 +162,7 @@ else
                         <input class="form-control" placeholder="Address..." @bind="@selectedCopyAddress.address1" @bind:event="oninput" @onkeyup="OnAddressChange" />
                     </div>
                 </div>
-                <div class="row">
+                <div class="row mb-1">
                     <div class="col-xs-6 col-sm-4">
                         <label class="label2" for="Pager">City</label>
                     </div>
@@ -163,7 +170,7 @@ else
                         <input class="form-control" placeholder="City..." type="text" name="City" id="City" @bind="selectedCopyAddress.city" />
                     </div>
                 </div>
-                <div class="row">
+                <div class="row mb-1">
                     <div class="col-xs-6 col-sm-4">
                         <label class="label2" for="Pager">State</label>
                     </div>
