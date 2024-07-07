@@ -30,10 +30,17 @@ namespace SSSCalBlazor.Models
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            string token = await _localStorage.GetItemAsStringAsync("accesstoken");
-            string idtoken = await _localStorage.GetItemAsStringAsync("idtoken");
-
-            //token = null;
+            string token=null;
+            string idtoken=null;
+            try
+            {
+                token = await _localStorage.GetItemAsStringAsync("accesstoken");
+                idtoken = await _localStorage.GetItemAsStringAsync("idtoken");
+            }
+            catch (InvalidOperationException)
+            {
+             }
+             //token = null;
             //await _localStorage.SetItemAsStringAsync("token", "");
             //await _localStorage.SetItemAsStringAsync("token",token);
             var identity = new ClaimsIdentity();
